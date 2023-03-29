@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>User List</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        form {
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+<table id="user-table">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Password</th>
+    </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+
+<form id="add-user-form">
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name">
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password">
+    <button type="submit">Add User</button>
+</form>
+
+<script>
+    const getUserList = () => {
+        fetch('/getuserlist')
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.querySelector('#user-table tbody');
+                tableBody.innerHTML = '';
+                data.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                <td>${user.id}</td>
+                <td>${user.name}</td>
+                <td>${user.password}</td>
+              `;
+                    tableBody.appendChild(row);
+                });
+            })
+            .catch(error => console.error(error));
+    };
+
+    const addUser = (name, password) => {
+        fetch('/adduser', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, password })
+        })
+            .then(response => {
+                if (response.ok) {
+                    getUserList();
+                } else {
+                    throw new Error('Failed to add user');
+                }
+            })
+            .catch(error => console.error(error));
+    };
+
+    const addForm = document.querySelector('#add-user-form');
+    addForm.addEventListener('submit', event => {
+        event.preventDefault();
+        const name = document.querySelector('#name').value;
+        const password = document.querySelector('#password').value;
+        addUser(name, password);
+        addForm.reset();
+    });
+
+    getUserList();
+</script>
+</body>
+</html>
